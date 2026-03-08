@@ -14,7 +14,6 @@ class Config:
   CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
 
 
-def get_cors_origins() -> list[str]:
-  origins = Config.CORS_ORIGINS
-  return [o.strip() for o in origins.split(",") if o.strip()]
+def get_cors_origins() -> list[str] | str:
+  return "*"
 

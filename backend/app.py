@@ -31,8 +31,8 @@ def create_app() -> Flask:
   cors.init_app(
     app,
     resources={r"/api/*": {"origins": get_cors_origins()}},
-    supports_credentials=True,
     allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   )
 
   # Blueprints

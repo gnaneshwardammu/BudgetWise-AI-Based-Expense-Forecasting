@@ -45,13 +45,55 @@ def create_app() -> Flask:
 
   register_error_handlers(app)
   register_jwt_handlers(app)
+  register_cli_commands(app)
 
   with app.app_context():
     import models  # noqa: F401
 
     db.create_all()
+    _seed_admin(app)
 
   return app
+
+
+def _seed_admin(app: Flask) -> None:
+  """Create or promote the admin user defined in ADMIN_EMAIL / ADMIN_PASSWORD env vars."""
+  from models import User
+
+  email = app.config.get("ADMIN_EMAIL", "").strip().lower()
+  password = app.config.get("ADMIN_PASSWORD", "").strip()
+  if not email or not password:
+    return
+
+  user = User.query.filter_by(email=email).first()
+  if user:
+    if not user.is_admin:
+      user.is_admin = True
+      db.session.commit()
+  else:
+    from datetime import datetime
+    new_user = User(email=email, created_at=datetime.utcnow(), is_admin=True)
+    new_user.set_password(password)
+    db.session.add(new_user)
+    db.session.commit()
+
+
+def register_cli_commands(app: Flask) -> None:
+  import click
+
+  @app.cli.command("set-admin")
+  @click.argument("email")
+  def set_admin(email: str) -> None:
+    """Promote a user to admin by email. Usage: flask set-admin user@example.com"""
+    from models import User
+
+    user = User.query.filter_by(email=email.lower()).first()
+    if not user:
+      click.echo(f"No user found with email: {email}")
+      return
+    user.is_admin = True
+    db.session.commit()
+    click.echo(f"User {email} promoted to admin.")
 
 
 def register_jwt_handlers(app: Flask) -> None:

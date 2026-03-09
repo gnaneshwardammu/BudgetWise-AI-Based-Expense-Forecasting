@@ -19,6 +19,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
   return children;
 };
 
+const AdminRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+  const { token, user, loading } = useAuth();
+  if (loading) return null;
+  if (!token) return <Navigate to="/login" replace />;
+  if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  return children;
+};
+
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="app-shell">
     <Navbar />
@@ -73,11 +81,11 @@ const App: React.FC = () => {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute>
+          <AdminRoute>
             <AppLayout>
               <Admin />
             </AppLayout>
-          </ProtectedRoute>
+          </AdminRoute>
         }
       />
 

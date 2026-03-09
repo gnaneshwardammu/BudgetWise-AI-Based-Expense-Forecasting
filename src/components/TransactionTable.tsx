@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import type { Transaction } from '../services/api';
+import { getCategoryIcon } from '../utils/categoryIcons';
 
 interface Props {
   transactions: Transaction[];
@@ -74,7 +75,11 @@ const TransactionTable: React.FC<Props> = ({ transactions, onEdit, onDelete }) =
               <tr key={tx.id}>
                 <td>{tx.date}</td>
                 <td>{tx.description}</td>
-                <td>{tx.category}</td>
+                <td>
+                  <span className="category-tag">
+                    {getCategoryIcon(tx.category)} {tx.category}
+                  </span>
+                </td>
                 <td>
                   <span className={`tag ${tx.type === 'Income' ? 'tag-income' : 'tag-expense'}`}>{tx.type}</span>
                 </td>

@@ -30,9 +30,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedUser = localStorage.getItem(USER_KEY);
     if (storedToken && storedUser) {
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      // Refresh role from backend so stale localStorage never shows wrong permissions
+      const BASE_URL = import.meta.env.VITE_API_URL;
+      fetch(`${BASE_URL}/profile`, {
+        headers: { Authorization: `Bearer ${storedToken}` },
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data) {
+            const freshUser = { email: data.email, role: data.is_admin ? 'admin' as const : 'user' as const };
+            setUser(freshUser);
+            localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
+          } else {
+            // Token invalid — clear session
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            setToken(null);
+          }
+        })
+        .catch(() => setUser(JSON.parse(storedUser)))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = (newToken: string, newUser: User) => {

@@ -9,22 +9,20 @@ interface Props {
 
 const SummaryCards: React.FC<Props> = ({ totalIncome, totalExpense, balance, savingsRate }) => {
   const cards = [
-    { label: 'Total Income', value: totalIncome, accent: 'card-income' },
-    { label: 'Total Expense', value: totalExpense, accent: 'card-expense' },
-    { label: 'Current Balance', value: balance, accent: 'card-balance' },
-    { label: 'Savings Rate', value: savingsRate, suffix: '%', accent: 'card-savings' }
+    { label: 'Total Income', value: totalIncome, accent: 'card-income', icon: '💰' },
+    { label: 'Total Expense', value: totalExpense, accent: 'card-expense', icon: '💸' },
+    { label: 'Current Balance', value: balance, accent: 'card-balance', icon: '🏦' },
+    { label: 'Savings Rate', value: savingsRate, suffix: '%', accent: 'card-savings', icon: '📈' },
   ];
 
   const formatCurrency = (amount: number) =>
-    amount.toLocaleString('en-IN', {
-      style: 'currency',
-      currency: 'INR'
-    });
+    amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
 
   return (
     <section className="summary-grid">
       {cards.map((card) => (
-        <div key={card.label} className={`card summary-card ${card.accent}`}>
+        <div key={card.label} className={`summary-card ${card.accent}`}>
+          <span className="summary-icon">{card.icon}</span>
           <div className="summary-label">{card.label}</div>
           <div className="summary-value">
             {'suffix' in card ? `${card.value.toFixed(1)}${card.suffix}` : formatCurrency(card.value)}

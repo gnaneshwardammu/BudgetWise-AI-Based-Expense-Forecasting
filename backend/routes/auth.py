@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from datetime import datetime
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
 from extensions import db
@@ -56,8 +56,14 @@ def login():
   if not user or not user.check_password(password):
     return jsonify({"error": "Invalid email or password."}), 401
 
+  # Auto-promote if this email is designated as admin in .env
+  admin_email = (current_app.config.get("ADMIN_EMAIL") or "").strip().lower()
+  if admin_email and email == admin_email and not user.is_admin:
+    user.is_admin = True
+    db.session.commit()
+
   access_token = create_access_token(identity=str(user.id))
-  return jsonify({"access_token": access_token, "email": user.email}), 200
+  return jsonify({"access_token": access_token, "email": user.email, "is_admin": user.is_admin}), 200
 
 
 @auth_bp.route("/profile", methods=["GET"])
@@ -73,6 +79,7 @@ def profile():
       {
         "id": user.id,
         "email": user.email,
+        "is_admin": user.is_admin,
         "created_at": user.created_at.isoformat(),
       }
     ),

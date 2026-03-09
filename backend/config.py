@@ -13,6 +13,9 @@ class Config:
 
   CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
 
+  ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "")
+  ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
+
 
 def get_cors_origins() -> list[str] | str:
   return "*"

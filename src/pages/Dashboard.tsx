@@ -4,6 +4,7 @@ import CategoryPieChart from '../components/CategoryPieChart';
 import IncomeExpenseBarChart from '../components/IncomeExpenseBarChart';
 import ForecastChart from '../components/ForecastChart';
 import { api, ForecastPoint, Transaction } from '../services/api';
+import { getCategoryIcon } from '../utils/categoryIcons';
 
 const DASHBOARD_CATEGORIES = ['Food', 'Transport', 'Rent', 'Utilities', 'Shopping', 'Other'] as const;
 
@@ -94,6 +95,39 @@ const Dashboard: React.FC = () => {
 
   const formatINR = (amount: number) => amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
 
+  const exportCSV = () => {
+    const header = ['Date', 'Description', 'Category', 'Type', 'Amount (INR)'];
+    const rows = transactions.map((t) => [
+      t.date,
+      `"${t.description.replace(/"/g, '""')}"`,
+      t.category,
+      t.type,
+      t.amount.toFixed(2),
+    ]);
+    const summaryRows = [
+      [],
+      ['--- Monthly Summary ---'],
+      ['Total Income', '', '', '', summary.totalIncome.toFixed(2)],
+      ['Total Expense', '', '', '', summary.totalExpense.toFixed(2)],
+      ['Balance', '', '', '', summary.balance.toFixed(2)],
+      ['Savings Rate', '', '', '', `${summary.savingsRate.toFixed(1)}%`],
+    ];
+    const csv = [header, ...rows, ...summaryRows].map((r) => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `budgetwise_report_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPDF = () => {
+    window.print();
+  };
+
   return (
     <div className="page">
       <div className="page-header page-header-row">
@@ -101,9 +135,17 @@ const Dashboard: React.FC = () => {
           <h1>Dashboard</h1>
           <p>Overview of your cash flow, spending, and AI-powered forecasts.</p>
         </div>
-        <button className="btn btn-accent" onClick={openAddModal}>
-          + Add Transaction
-        </button>
+        <div className="export-row">
+          <button className="btn btn-export-csv" onClick={exportCSV}>
+            ⬇️ Export CSV
+          </button>
+          <button className="btn btn-export" onClick={exportPDF}>
+            📄 Export PDF
+          </button>
+          <button className="btn btn-accent" onClick={openAddModal}>
+            + Add Transaction
+          </button>
+        </div>
       </div>
 
       <SummaryCards
@@ -142,7 +184,11 @@ const Dashboard: React.FC = () => {
                 <tr key={tx.id}>
                   <td>{tx.date}</td>
                   <td>{tx.description}</td>
-                  <td>{tx.category}</td>
+                  <td>
+                    <span className="category-tag">
+                      {getCategoryIcon(tx.category)} {tx.category}
+                    </span>
+                  </td>
                   <td>
                     <span className={`tag ${tx.type === 'Income' ? 'tag-income' : 'tag-expense'}`}>{tx.type}</span>
                   </td>

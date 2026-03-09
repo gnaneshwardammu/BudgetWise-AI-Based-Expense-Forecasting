@@ -113,11 +113,11 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: payload.email, password: payload.password }),
     });
-    const data = await handleResponse<{ access_token: string; email: string }>(res);
+    const data = await handleResponse<{ access_token: string; email: string; is_admin: boolean }>(res);
     return {
       token: data.access_token,
       email: data.email,
-      role: data.email.includes('admin') ? 'admin' : 'user',
+      role: data.is_admin ? 'admin' : 'user',
     };
   },
 
